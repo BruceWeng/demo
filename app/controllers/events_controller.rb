@@ -1,5 +1,14 @@
 class EventsController < ApplicationController
   before_action :set_event, :only => [:show, :edit, :update, :destroy]
+  private
+  def set_event
+    @event = Event.find(params[:id])
+  end
+  def event_params
+    params.require(:event).permit(:name, :description, :category_id)
+  end
+
+  public
   # GET /events/index
   # GET /events
   def index
@@ -30,6 +39,7 @@ class EventsController < ApplicationController
   def new
     @event = Event.new
   end
+
   # POST /events
   def create
     @event = Event.new(event_params)
@@ -38,7 +48,7 @@ class EventsController < ApplicationController
       # Do not what confirmation alert
       redirect_to events_path #Tell browser HTTP code: 303
     else
-      render :action => :new # new.html.erb
+      render :action => :new
     end
   end
   # GET /events/:id/edit
@@ -58,12 +68,5 @@ class EventsController < ApplicationController
     @event.destroy
     flash[:alert] = "event was successfully deleted"
     redirect_to events_path
-  end
-  private
-  def set_event
-    @event = Event.find(params[:id])
-  end
-  def event_params
-    params.require(:event).permit(:name, :description)
   end
 end

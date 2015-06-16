@@ -1,6 +1,11 @@
 Rails.application.routes.draw do
-  resources :events
 
+  resources :events do
+    resources :attendees, :controller => 'event_attendees'
+  end
+  # recources :evnets do
+  #   resource :location, :controller => 'event_locations'
+  # end
   #get "" => "welcome#say"
 
   #get "/welcome/say_hello" => "welcome#say"
