@@ -1,18 +1,26 @@
 class EventsController < ApplicationController
-  before_action :set_event, :only => [:show, :edit, :update, :destroy]
+  before_action :authenticate_user!
+  before_action :set_event, :only => [:show, :edit, :update, :destroy, :dashboard]
   private
   def set_event
     @event = Event.find(params[:id])
   end
   def event_params
-    params.require(:event).permit(:name, :description, :category_id)
+    params.require(:event).permit(:name, :description, :category_id, :status, :group_ids => [])
   end
 
   public
   # GET /events/index
   # GET /events
   def index
-    @events = Event.page(params[:page]).per(10)
+    if params[:eid]
+      @event = Event.find( params[:eid])
+    else
+      @event = Event.new
+      # @event.start_on = Date.new(2015,1,1)
+    end
+    prepare_variable_for_index_template
+
     respond_to do |format|
       format.html
       format.xml {
@@ -25,6 +33,25 @@ class EventsController < ApplicationController
         @feed_title = "My event list"
       }
     end
+  end
+  # GET /events/:id/dashboard
+  def dashboard
+
+  end
+  def latest
+    @events =Event.order("id DESC").limit(3)
+
+  end
+  # POST /event.bulk_delete
+  def bulk_update
+    ids = Array( params[:ids])
+    events = ids.map{ |i| Event.find_by_id(i)}.compact
+    if params[:commit] == "Delete"
+      events.each { |event| event.destroy}
+    elsif params[:commit] =="Publish"
+      events.each {|event| event.update( :status => "published")}
+    end
+    redirect_to :back
   end
   # GET /events
   def show
@@ -68,5 +95,19 @@ class EventsController < ApplicationController
     @event.destroy
     flash[:alert] = "event was successfully deleted"
     redirect_to events_path
+  end
+  def prepare_variable_for_index_template
+    if params[:keyword]
+      @events = Event.where( ["name like ?", "%#{params[:keyword]}%"])
+    else
+      @events = Event.all
+    end
+
+    if params[:order]
+      sort_by = (params[:order] == "name") ? "name" : "id"
+      @events = @events.order(sort_by)
+
+    end
+    @events = @events.page( params[:page]).per(10)
   end
 end
