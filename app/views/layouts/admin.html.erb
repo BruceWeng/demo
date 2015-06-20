@@ -19,7 +19,10 @@
         <div class="alert alert-danger" role="alert"><%= flash[:alert] %></div>
       <% end %>
       <%= yield %>
-      <%= link_to "admin", admin_events_path %>
+      <% if current_user && current_user.admin? %>
+        <%= link_to "admin", admin_events_path %>
+      <% end %>
+
     </div>
   </div>
 </div>
